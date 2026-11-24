@@ -1,11 +1,25 @@
 import { useMemo, useState } from 'react';
+import { Download } from 'lucide-react';
 import { MarkdownViewer } from './components/MarkdownViewer';
 import { ReadmePreview } from './components/ReadmePreview';
 import { StudioSidebar } from './components/StudioSidebar';
 import { TopBar } from './components/TopBar';
-import { DEFAULT_CONFIG } from './data/defaultConfig';
+import { DEFAULT_CONFIG, SPIDER_AVATAR_PATH } from './data/defaultConfig';
 import { ReadmeConfig, ViewMode } from './types/readme';
 import { generateReadmeMarkdown } from './utils/generateMarkdown';
+import { generateBannerSvg, generateFooterSvg } from './utils/generateSvgAssets';
+
+function triggerDownload(filename: string, content: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 export default function App() {
   const [config, setConfig] = useState<ReadmeConfig>(DEFAULT_CONFIG);
@@ -35,15 +49,37 @@ export default function App() {
   };
 
   const handleDownloadMarkdown = () => {
-    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'README.md';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    triggerDownload('README.md', markdown, 'text/markdown;charset=utf-8');
+  };
+
+  const handleDownloadBannerSvg = () => {
+    triggerDownload('banner.svg', generateBannerSvg(config), 'image/svg+xml;charset=utf-8');
+  };
+
+  const handleDownloadFooterSvg = () => {
+    triggerDownload('footer.svg', generateFooterSvg(config), 'image/svg+xml;charset=utf-8');
+  };
+
+  const handleDownloadAvatar = async () => {
+    try {
+      const res = await fetch(SPIDER_AVATAR_PATH);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'avatar.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch {
+      const link = document.createElement('a');
+      link.href = SPIDER_AVATAR_PATH;
+      link.download = 'avatar.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleReset = () => {
@@ -66,30 +102,69 @@ export default function App() {
           onChange={setConfig}
           onReset={handleReset}
           onDownload={handleDownloadMarkdown}
+          onDownloadBannerSvg={handleDownloadBannerSvg}
+          onDownloadFooterSvg={handleDownloadFooterSvg}
+          onDownloadAvatar={handleDownloadAvatar}
           isOpenMobile={sidebarOpenMobile}
           onCloseMobile={() => setSidebarOpenMobile(false)}
         />
 
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-800/80 bg-[#0D1117] px-4 py-3 text-xs text-slate-400">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-medium text-slate-200">GitHub Profile README</span>
+              <span className="font-medium text-slate-200">Publish Pack</span>
               <span aria-hidden="true">·</span>
               <span>
-                Publish to{' '}
+                Upload{' '}
+                {config.bannerMode === 'repo-svg' && (
+                  <>
+                    <span className="font-mono text-slate-200">banner.svg</span>,{' '}
+                    <span className="font-mono text-slate-200">footer.svg</span>,{' '}
+                  </>
+                )}
+                <span className="font-mono text-slate-200">avatar.jpg</span> &amp; update{' '}
+                <span className="font-mono text-blue-400">README.md</span> in{' '}
                 <a
-                  href={`https://github.com/${config.username}`}
+                  href={`https://github.com/${config.username}/${config.username}`}
                   target="_blank"
                   rel="noreferrer"
                   className="font-mono text-blue-400 hover:underline"
                 >
-                  github.com/{config.username}/{config.username}
+                  {config.username}/{config.username}
                 </a>
               </span>
             </div>
-            <span className="font-mono text-[11px] text-slate-500">
-              Dark Blue & Purple Theme
-            </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleDownloadAvatar}
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-[11px] font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer whitespace-nowrap"
+              >
+                <Download className="h-3 w-3 text-red-400" />
+                <span>avatar.jpg</span>
+              </button>
+              {config.bannerMode === 'repo-svg' && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleDownloadBannerSvg}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-[11px] font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer whitespace-nowrap"
+                  >
+                    <Download className="h-3 w-3 text-blue-400" />
+                    <span>banner.svg</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadFooterSvg}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800/70 px-2.5 py-1 text-[11px] font-medium text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-800 cursor-pointer whitespace-nowrap"
+                  >
+                    <Download className="h-3 w-3 text-violet-400" />
+                    <span>footer.svg</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           {viewMode === 'preview' && (

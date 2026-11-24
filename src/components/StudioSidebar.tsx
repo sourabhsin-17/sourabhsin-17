@@ -1,7 +1,9 @@
 import { Download, RotateCcw, X } from 'lucide-react';
-import { THEME_PRESETS } from '../data/defaultConfig';
+import { SPIDER_AVATAR_PATH, THEME_PRESETS } from '../data/defaultConfig';
 import {
   AccentThemeId,
+  BannerBgTheme,
+  BannerMode,
   ProjectLayout,
   ReadmeConfig,
   ReadmeSections,
@@ -13,21 +15,33 @@ interface StudioSidebarProps {
   onChange: (next: ReadmeConfig) => void;
   onReset: () => void;
   onDownload: () => void;
+  onDownloadBannerSvg: () => void;
+  onDownloadFooterSvg: () => void;
+  onDownloadAvatar: () => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
 }
 
 const SECTION_LABELS: { key: keyof ReadmeSections; label: string }[] = [
-  { key: 'banner', label: 'Animated Wave Banner' },
+  { key: 'banner', label: 'Themed Banner' },
   { key: 'typing', label: 'Typing Introduction' },
   { key: 'about', label: 'About Me' },
+  { key: 'avatarInAbout', label: 'Avatar in About Me' },
   { key: 'techStack', label: 'Technologies & Tools' },
   { key: 'projects', label: 'Featured Projects' },
   { key: 'stats', label: 'Contribution Stats' },
   { key: 'languages', label: 'Most-Used Languages' },
   { key: 'streak', label: 'Streak Statistics' },
+  { key: 'activityGraph', label: 'Contribution Graph' },
   { key: 'connect', label: 'Social & Contact' },
   { key: 'footer', label: 'Thank-You Footer' },
+];
+
+const BG_THEMES: { id: BannerBgTheme; label: string; desc: string }[] = [
+  { id: 'spider-web', label: 'Spider-Man Web', desc: 'Corner webs, emblem & red/blue glow' },
+  { id: 'aurora-grid', label: 'Aurora Grid', desc: 'Soft ambient glow & subtle tech grid' },
+  { id: 'cosmic-constellation', label: 'Cosmic Mesh', desc: 'Starfield & geometric constellation' },
+  { id: 'cyber-terminal', label: 'Dev Matrix', desc: 'Dot matrix & circuit trace lines' },
 ];
 
 export function StudioSidebar({
@@ -35,6 +49,9 @@ export function StudioSidebar({
   onChange,
   onReset,
   onDownload,
+  onDownloadBannerSvg,
+  onDownloadFooterSvg,
+  onDownloadAvatar,
   isOpenMobile,
   onCloseMobile,
 }: StudioSidebarProps) {
@@ -79,8 +96,113 @@ export function StudioSidebar({
       </div>
 
       <div className="flex-1 space-y-7 overflow-y-auto px-5 py-5">
-        {/* Accent Palette */}
+        {/* Profile Avatar Card */}
         <section className="space-y-3">
+          <h2 className="font-display text-xs font-semibold tracking-wide text-slate-300">
+            Profile Picture
+          </h2>
+          <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-[#090D16] p-2.5">
+            <img
+              src={SPIDER_AVATAR_PATH}
+              alt="Spider-Man Avatar"
+              className="h-11 w-11 shrink-0 rounded-lg border border-slate-700 object-cover"
+              referrerPolicy="no-referrer"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-semibold text-slate-100">
+                avatar.jpg
+              </div>
+              <div className="text-[11px] text-slate-400">
+                For GitHub profile &amp; README
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onDownloadAvatar}
+              className="inline-flex shrink-0 items-center gap-1 rounded-md border border-red-500/35 bg-red-600/15 px-2.5 py-1.5 text-[11px] font-medium text-red-200 transition-colors hover:bg-red-600/25 cursor-pointer"
+            >
+              <Download className="h-3 w-3" />
+              <span>Save</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Background Theme */}
+        <section className="space-y-3 border-t border-slate-800/70 pt-5">
+          <h2 className="font-display text-xs font-semibold tracking-wide text-slate-300">
+            Banner Background Theme
+          </h2>
+          <div className="grid grid-cols-1 gap-2">
+            {BG_THEMES.map((item) => {
+              const active = config.bannerBgTheme === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => onChange({ ...config, bannerBgTheme: item.id })}
+                  className={`rounded-lg border px-3 py-2 text-left transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                    active
+                      ? 'border-blue-500/60 bg-blue-500/10 text-slate-100'
+                      : 'border-slate-800 bg-[#090D16] text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  }`}
+                >
+                  <div className="text-xs font-semibold">{item.label}</div>
+                  <div className="mt-0.5 text-[11px] text-slate-400">{item.desc}</div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <label className="block text-[11px] text-slate-400">
+              Banner Asset Mode
+            </label>
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-800 bg-[#090D16] p-1">
+              {(
+                [
+                  { value: 'repo-svg', label: 'Repo SVGs' },
+                  { value: 'external-url', label: 'External URL' },
+                ] as { value: BannerMode; label: string }[]
+              ).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => onChange({ ...config, bannerMode: opt.value })}
+                  className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    config.bannerMode === opt.value
+                      ? 'bg-slate-800 text-slate-100'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {config.bannerMode === 'repo-svg' && (
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={onDownloadBannerSvg}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-blue-500/35 bg-blue-600/15 px-2.5 py-1.5 text-[11px] font-medium text-blue-200 transition-colors hover:bg-blue-600/25 cursor-pointer whitespace-nowrap"
+                >
+                  <Download className="h-3 w-3" />
+                  <span>banner.svg</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onDownloadFooterSvg}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-violet-500/35 bg-violet-600/15 px-2.5 py-1.5 text-[11px] font-medium text-violet-200 transition-colors hover:bg-violet-600/25 cursor-pointer whitespace-nowrap"
+                >
+                  <Download className="h-3 w-3" />
+                  <span>footer.svg</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Accent Palette */}
+        <section className="space-y-3 border-t border-slate-800/70 pt-5">
           <h2 className="font-display text-xs font-semibold tracking-wide text-slate-300">
             Accent Palette
           </h2>
@@ -129,8 +251,8 @@ export function StudioSidebar({
             <div className="grid grid-cols-2 gap-1 rounded-lg border border-slate-800 bg-[#090D16] p-1">
               {(
                 [
-                  { value: 'shields', label: 'Badges' },
                   { value: 'skillicons', label: 'Icon Grid' },
+                  { value: 'shields', label: 'Badges' },
                 ] as { value: TechStyle; label: string }[]
               ).map((opt) => (
                 <button
@@ -330,12 +452,10 @@ export function StudioSidebar({
 
   return (
     <>
-      {/* Desktop persistent sidebar */}
       <aside className="hidden w-[290px] shrink-0 border-r border-slate-800/80 lg:block">
         <div className="sticky top-14 h-[calc(100vh-3.5rem)]">{content}</div>
       </aside>
 
-      {/* Mobile slide-over drawer */}
       {isOpenMobile && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div

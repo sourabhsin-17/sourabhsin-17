@@ -34,13 +34,19 @@ export function generateReadmeMarkdown(config: ReadmeConfig): string {
   const username = config.username.trim() || 'sourabhsin-17';
   const blocks: string[] = [];
 
-  // 1. Animated Wave Banner
+  // 1. Animated Themed Banner
   if (config.sections.banner) {
-    const bannerTitle = encodeURIComponent(config.name.trim() || 'Sourabh Singh');
-    const bannerDesc = encodeURIComponent(config.bannerSubtitle.trim() || config.focus);
-    blocks.push(`<div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:${theme.gradientStart},50:${theme.gradientMid},100:${theme.gradientEnd}&height=210&section=header&text=${bannerTitle}&fontSize=46&fontColor=F8FAFC&fontAlignY=38&desc=${bannerDesc}&descSize=16&descAlignY=60&descColor=CBD5E1&animation=fadeIn" width="100%" alt="${config.name} Banner" />
+    if (config.bannerMode === 'repo-svg') {
+      blocks.push(`<div align="center">
+  <img src="./banner.svg" width="100%" alt="${config.name} Banner" />
 </div>`);
+    } else {
+      const bannerTitle = encodeURIComponent(config.name.trim() || 'Sourabh Singh');
+      const bannerDesc = encodeURIComponent(config.bannerSubtitle.trim() || config.focus);
+      blocks.push(`<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:${theme.gradientStart},100:${theme.gradientEnd}&height=200&section=header&text=${bannerTitle}&fontSize=44&fontColor=F8FAFC&fontAlignY=40&desc=${bannerDesc}&descSize=16&descAlignY=62" width="100%" alt="${config.name} Banner" />
+</div>`);
+    }
   }
 
   // 2. Typing SVG Intro
@@ -48,19 +54,39 @@ export function generateReadmeMarkdown(config: ReadmeConfig): string {
     const encodedLines = encodeTypingLines(config.typingLines);
     blocks.push(`<div align="center">
   <a href="https://github.com/${username}">
-    <img src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=22&duration=3200&pause=900&color=${theme.statsTitleHex}&center=true&vCenter=true&width=640&lines=${encodedLines}" alt="Typing Animation" />
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&duration=3200&pause=900&color=${theme.statsTitleHex}&center=true&vCenter=true&width=640&lines=${encodedLines}" alt="Typing Animation" />
   </a>
 </div>`);
   }
 
-  // Separator
-  if (config.sections.banner || config.sections.typing) {
-    blocks.push(`---`);
-  }
-
-  // 3. About Me
+  // 3. About Me (with optional 2-column Avatar layout)
   if (config.sections.about) {
-    blocks.push(`## About Me
+    if (config.sections.avatarInAbout) {
+      blocks.push(`---
+
+## About Me
+
+<table width="100%">
+  <tr>
+    <td width="170" align="center" valign="middle">
+      <img src="./avatar.jpg" width="140" alt="${config.name} Avatar" /><br /><br />
+      <sub><strong>@${username}</strong><br />${config.location.trim()}</sub>
+    </td>
+    <td valign="top">
+      <p>${config.introSummary.trim()}</p>
+      <ul>
+        <li><strong>Current Focus:</strong> ${config.focus.trim()}</li>
+        <li><strong>Interests:</strong> ${config.interests.trim()}</li>
+        <li><strong>Location:</strong> ${config.location.trim()}</li>
+        <li><strong>GitHub:</strong> <a href="https://github.com/${username}">github.com/${username}</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>`);
+    } else {
+      blocks.push(`---
+
+## About Me
 
 ${config.introSummary.trim()}
 
@@ -68,6 +94,7 @@ ${config.introSummary.trim()}
 - **Current Focus:** ${config.focus.trim()}
 - **Interests:** ${config.interests.trim()}
 - **GitHub:** [@${username}](https://github.com/${username})`);
+    }
   }
 
   // 4. Technologies & Skills (Working with & Learning)
@@ -78,10 +105,12 @@ ${config.introSummary.trim()}
 
 ## Technologies & Tools I'm Working With
 
-> *Continuously learning, practicing, and building across the full web stack.*
+> *Actively building projects and deepening my fundamentals across these tools.*
 
 <div align="center">
-  <img src="https://skillicons.dev/icons?i=${iconIds}&theme=dark&perline=6" alt="Technologies and Tools" />
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=${iconIds}&theme=dark&perline=6" alt="Technologies and Tools" />
+  </a>
 </div>`);
     } else {
       const frontend = TECH_STACK.filter((t) => t.category === 'Frontend')
@@ -98,7 +127,7 @@ ${config.introSummary.trim()}
 
 ## Technologies & Tools I'm Working With
 
-> *Actively learning and building projects with these languages, frameworks, and tools.*
+> *Actively building projects and deepening my fundamentals across these tools.*
 
 <div align="center">
 
@@ -173,8 +202,13 @@ ${cards}`);
     }
   }
 
-  // 6. GitHub Analytics (Contribution Stats, Streak, Top Languages)
-  const hasAnyStats = config.sections.stats || config.sections.streak || config.sections.languages;
+  // 6. GitHub Analytics
+  const hasAnyStats =
+    config.sections.stats ||
+    config.sections.streak ||
+    config.sections.languages ||
+    config.sections.activityGraph;
+
   if (hasAnyStats) {
     const statCards: string[] = [];
 
@@ -190,20 +224,24 @@ ${cards}`);
       );
     }
 
-    const streakBlock = config.sections.streak
-      ? `\n\n<div align="center">\n  <img src="https://streak-stats.demolab.com?user=${username}&background=0D1117&border=1E293B&stroke=${theme.primaryHex}&ring=${theme.secondaryHex}&fire=${theme.statsIconHex}&currStreakLabel=${theme.statsTitleHex}&sideLabels=CBD5E1&currStreakNum=F8FAFC&sideNums=F8FAFC&dates=94A3B8" alt="${username} GitHub Streak" />\n</div>`
-      : '';
-
     const topRow =
       statCards.length > 0
         ? `<div align="center">\n${statCards.join('\n')}\n</div>`
         : '';
 
+    const streakBlock = config.sections.streak
+      ? `\n\n<div align="center">\n  <img src="https://streak-stats.demolab.com?user=${username}&background=0D1117&border=1E293B&stroke=${theme.primaryHex}&ring=${theme.secondaryHex}&fire=${theme.statsIconHex}&currStreakLabel=${theme.statsTitleHex}&sideLabels=CBD5E1&currStreakNum=F8FAFC&sideNums=F8FAFC&dates=94A3B8" alt="${username} GitHub Streak" />\n</div>`
+      : '';
+
+    const graphBlock = config.sections.activityGraph
+      ? `\n\n<div align="center">\n  <img src="https://github-readme-activity-graph.vercel.app/graph?username=${username}&bg_color=0D1117&color=${theme.statsTitleHex}&line=${theme.primaryHex}&point=${theme.statsIconHex}&area=true&hide_border=false&border_color=1E293B" width="100%" alt="${username} Contribution Graph" />\n</div>`
+      : '';
+
     blocks.push(`---
 
 ## GitHub Activity & Statistics
 
-${topRow}${streakBlock}`);
+${topRow}${streakBlock}${graphBlock}`);
   }
 
   // 7. Social & Contact Section
@@ -251,12 +289,20 @@ ${contactBadges.join('\n')}
 
   // 8. Stylish Footer
   if (config.sections.footer) {
-    blocks.push(`---
+    if (config.bannerMode === 'repo-svg') {
+      blocks.push(`---
+
+<div align="center">
+  <img src="./footer.svg" width="100%" alt="Footer Wave" />
+</div>`);
+    } else {
+      blocks.push(`---
 
 <div align="center">
   <p><sub>${config.footerNote.trim()}</sub></p>
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:${theme.gradientStart},50:${theme.gradientMid},100:${theme.gradientEnd}&height=110&section=footer" width="100%" alt="Footer Wave" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:${theme.gradientStart},100:${theme.gradientEnd}&height=100&section=footer" width="100%" alt="Footer Wave" />
 </div>`);
+    }
   }
 
   return blocks.join('\n\n') + '\n';

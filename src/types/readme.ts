@@ -1,4 +1,16 @@
-export type AccentThemeId = 'cobalt-violet' | 'sapphire-indigo' | 'midnight-amethyst';
+export type AccentThemeId =
+  | 'spiderman-crimson'
+  | 'cobalt-violet'
+  | 'sapphire-indigo'
+  | 'midnight-amethyst';
+
+export type BannerBgTheme =
+  | 'spider-web'
+  | 'aurora-grid'
+  | 'cosmic-constellation'
+  | 'cyber-terminal';
+
+export type BannerMode = 'repo-svg' | 'external-url';
 
 export type TechStyle = 'shields' | 'skillicons';
 
@@ -42,9 +54,11 @@ export interface ReadmeSections {
   banner: boolean;
   typing: boolean;
   about: boolean;
+  avatarInAbout: boolean;
   techStack: boolean;
   projects: boolean;
   stats: boolean;
+  activityGraph: boolean;
   streak: boolean;
   languages: boolean;
   connect: boolean;
@@ -63,6 +77,8 @@ export interface ReadmeConfig {
   linkedinUrl: string;
   portfolioUrl: string;
   bannerSubtitle: string;
+  bannerBgTheme: BannerBgTheme;
+  bannerMode: BannerMode;
   typingLines: string[];
   themeId: AccentThemeId;
   techStyle: TechStyle;
