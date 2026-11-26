@@ -195,7 +195,7 @@ export const DEFAULT_CONFIG: ReadmeConfig = {
     avatarInAbout: true,
     techStack: true,
     projects: true,
-    stats: true,
+    stats: false,
     activityGraph: true,
     streak: true,
     languages: true,
